@@ -1,8 +1,39 @@
-name: hello-world
-'on': push
+name: dbt Deploy
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch
+  pull_request:
+    branches:
+      - main  # Optional: run on PRs to main
+
 jobs:
-  my-job:
+  dbt:
     runs-on: ubuntu-latest
+
     steps:
-      - name: mystep
-        run: echo "Hello World!"
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'  # Specify your Python version
+
+    - name: Install dependencies
+      run: |
+        pip install dbt  # Add any additional dependencies as needed
+
+    - name: Run dbt
+      env:
+        DBT_PROFILES_DIR: ${{ secrets.DBT_PROFILES_DIR }}  # Set up your DBT profiles directory
+        DBT_TARGET: ${{ secrets.DBT_TARGET }}  # Define your target environment
+        DBT_USER: ${{ secrets.DBT_USER }}  # Set your DBT user if required
+        DBT_PASSWORD: ${{ secrets.DBT_PASSWORD }}  # Set your DBT password if required
+      run: |
+        dbt run  # You can also use dbt run --target your_target
+
+    - name: Run dbt tests (optional)
+      run: |
+        dbt test
